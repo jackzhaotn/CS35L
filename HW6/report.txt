@@ -1,0 +1,243 @@
+Laboratory 6: Buffered versus unbuffreed I/O
+
+1) Implemented tr2b.c and tr2u.c
+   The two implementations produces the same result, but the former uses
+   buffered I/O with getchar() and putchar() function calls from <stdio.h>,
+   while the latter uses unbuffered I/O with system calls of read() and
+   write() from <unistd.h>
+   Code for both implementations is submitted.
+
+2) To generate a file containing atleast 5,000,000 bytes, we will the head
+   of /dev/urandom (first 5 million bytes) and use it as the large file:
+   $ head --bytes=5000000 /dev/urandom > largefile.txt
+
+3) Now we will use strace command to compare the system calls issued by each
+   implementation when a) copying one file to another, and b) when copying a
+   file to my terminal
+
+   First I needed to learn how strace works and what options it has
+   $ man strace
+
+   a) $ strace -c ./tr2b 'abc' 'def' < largefile.txt > output.txt
+
+tr2b:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 65.86    0.000438           1       611           write
+ 34.14    0.000227           0       613           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0         9           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000665                  1250         1 total
+
+   $ strace -c ./tr2u 'abc' 'def' < largefile.txt > output.txt
+
+tr2u:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 54.92   28.944131           6   5000000           write
+ 45.08   23.755581           5   5000002           read
+  0.00    0.000050           7         7           mmap
+  0.00    0.000034           9         4           mprotect
+  0.00    0.000024          12         2           open
+  0.00    0.000012          12         1           munmap
+  0.00    0.000009           5         2           fstat
+  0.00    0.000007           4         2           close
+  0.00    0.000007           7         1         1 access
+  0.00    0.000003           3         1           arch_prctl
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00   52.699858              10000024         1 total
+
+   As we can see, unbuffered I/O is very expensive. Buffered I/O implementation
+   used 1250 system calls, whereas the unbuffered version used over 10 million
+   system calls.
+
+   b) $ strace -c ./tr2b 'abc' 'def' < largefile.txt
+
+tr2b:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 97.52    0.067172           3     20218           write
+  2.19    0.001509           2       613           read
+  0.10    0.000068           8         9           mmap
+  0.06    0.000038          10         4           mprotect
+  0.04    0.000026           7         4           fstat
+  0.03    0.000022          11         2           open
+  0.02    0.000013          13         1           munmap
+  0.01    0.000010           5         2           close
+  0.01    0.000010          10         1         1 access
+  0.01    0.000006           6         1           brk
+  0.01    0.000005           5         1           arch_prctl
+  0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.068879                 20857         1 total
+
+tr2u:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 56.02   28.488119           6   5000004         4 write
+ 43.98   22.366242           4   5000002           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         2           fstat
+  0.00    0.000000           0         7           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   50.854361              10000028         5 total
+
+   Again, tr2u, the unbuffered I/O implementation takes expontentially more
+   system calls than its buffered I/O counterpart.
+
+4) We will now use the time command to measure which program is faster when
+   copying to a file
+
+   $ time ./tr2b 'abc' 'def' < largefile.txt > output.txt
+   tr2b:
+   real	0m0.413s
+   user	0m0.325s
+   sys	0m0.012s
+
+   $ time ./tr2u 'abc' 'def' < largefile.txt > output.txt
+
+
+Homework 6:
+
+1) Time comparison of varied file sizes for sfrob and sfrobu
+$touch test0
+$ shuf -n 100 -r -e "*~BO *{_CIA *hXE]D *LER #@_GZY #E\\OX #^BO #FKPS #NEM\4" > test100b
+$ shuf -n 10000 -r -e "*~BO *{_CIA *hXE]D *LER #@_GZY #E\\OX #^BO #FKPS #NEM\4" > test10kb
+$ shuf -n 1000000 -r -e "*~BO *{_CIA *hXE]D *LER #@_GZY #E\\OX #^BO #FKPS #NEM\4" > test1mb
+
+0 Byte File:
+
+sfrob:
+real	0m0.003s
+user	0m0.000s
+sys	0m0.002s
+
+sfrobu:
+real	0m0.004s
+user	0m0.000s
+sys	0m0.002s
+
+100 Byte File:
+
+sfrob:
+real	0m0.004s
+user	0m0.001s
+sys	0m0.003s
+
+sfrobu:
+real	0m0.005s
+user	0m0.001s
+sys	0m0.002s
+
+10000 Byte File:
+
+sfrob:
+real	0m0.117s
+user	0m0.076s
+sys	0m0.026s
+
+sfrobu:
+real	0m0.198s
+user	0m0.089s
+sys	0m0.097s
+
+1000000 Byte File:
+
+sfrob:
+real	0m21.722s
+user	0m11.252s
+sys	0m2.539s
+
+sfrobu:
+real	0m29.526s
+user	0m13.551s
+sys	0m13.897s
+
+CPU time cost function (n = imput lines)
+sfrob: 2.175e-005 * n + .003
+sfrobu: 2.956e-005 * n + .004
+
+From the statistics, sfrob is more time efficient than sfrobu -- affirming that
+buffered I/O is faster than unbuffered I/O.
+
+2) Instead of malloc/realloc, the system calls would be brk()/mremap() with arguments
+   in the form of: int brk(void *addr);
+   and void *mremap(void *old_address, size_t old_size,
+                    size_t new_size, int flags, ... /* void *new_address */);
+
+$ strace -c ./sfrobu < test100b
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 96.08    0.004241           5       801           write
+  0.84    0.000037           5         8           mmap
+  0.77    0.000034           9         4           mprotect
+  0.66    0.000029           7         4           read
+  0.50    0.000022           7         3           open
+  0.36    0.000016           8         2           munmap
+  0.29    0.000013           3         4           fstat
+  0.27    0.000012           2         8           brk
+  0.16    0.000007           2         3           close
+  0.07    0.000003           3         1           arch_prctl
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.004414                   840         1 total
+
+$ strace -c ./sfrobu < test10kb
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 99.81    0.437251           5     80001           write
+  0.10    0.000421         105         4           read
+  0.03    0.000124           1       125           mremap
+  0.01    0.000064           1        48           brk
+  0.01    0.000059           5        11           mmap
+  0.01    0.000034           9         4           mprotect
+  0.01    0.000029          10         3           open
+  0.01    0.000025           5         5           munmap
+  0.00    0.000020           5         4           fstat
+  0.00    0.000016           5         3           close
+  0.00    0.000008           8         1         1 access
+  0.00    0.000008           8         1           execve
+  0.00    0.000004           4         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.438063                 80211         1 total
+
+$ strace -c ./sfrobu < test1mb
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 97.14   40.970289           5   8000001           write
+  2.78    1.174089          75     15594           mremap
+  0.06    0.027218        6805         4           read
+  0.01    0.005955           2      3798           brk
+  0.00    0.000061          12         5           munmap
+  0.00    0.000000           0         3           open
+  0.00    0.000000           0         3           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0        11           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   42.177612               8019430         1 total
+
+strace confirms that brk and mremap are used for malloc and (a very efficient) realloc
+since they both grow when file size is increased.

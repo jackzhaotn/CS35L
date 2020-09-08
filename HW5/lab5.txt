@@ -1,0 +1,139 @@
+Laboratory 5: Debugging a C program
+
+1) Download the bugged version of coreutils using wget
+   $ wget https://web.cs.ucla.edu/classes/spring20/cs35L/assign/coreutils-with
+     -bug.tar.gz
+
+   Uncompress the file with
+   $ tar -xvf coreutils-with-bug.tar.gz
+
+   Go into coreutils folder and install with ./configure and --prefix to create
+   makefiles and set the absolute path to the installation location
+   $ cd coreutils-with-bug
+   $ ./configure --prefix='/u/cs/ugrad/shijie/CS35L/assign5/coreutils-with-bug'
+
+   Now we compile everything with:
+   $ make
+   However, the compilation fails and returns:
+   utimens.h:2:5: error: conflicting types for 'futimens'
+    2 | int futimens (int, char const *, struct timespec const [2]);
+      |     ^~~~~~~~
+
+2) So I need to apply the patch first. Use wget to download the patch from the
+   website:
+   $ wget https://web.cs.ucla.edu/classes/spring20/cs35L/assign/coreutils.diff
+
+   And to apply the patch:
+   $ patch -p0 < coreutils.diff
+
+   To see if it worked:
+   $ make
+   $ make install
+   No errors in the compilation this time. The patch renamed some futimen
+   functions so that the code doesn't redefine same function names.
+
+3) Now to reproduce the bug:
+   $ tmp=$(mktemp -d)
+   $ cd $tmp
+   $ touch -d '1918-11-11 11:00 GMT' wwi-armistice-cs35L
+   $ touch now
+   $ sleep 1
+   $ touch now1
+   $ ~/CS35L/assign5/coreutils-with-bug/bin/ls -lt --full-time
+     wwi-armistice-cs35L now now1
+
+   With the artifically dated file and the other two files, now see the bug
+   reproduced:
+   -rw-r--r-- 1 shijie csugrad 0 1918-11-11 03:00:00.000000000 -0800
+      wwi-armistice-cs35L
+   -rw-r--r-- 1 shijie csugrad 0 2020-05-06 21:08:51.611428563 -0700 now1
+   -rw-r--r-- 1 shijie csugrad 0 2020-05-06 21:08:38.473197293 -0700 now
+
+   Now to delete the temp dir
+   $ cd
+   $ rm -fr $tmp
+   
+4) To debug ls, I will use GDB
+   $ gdb ~/CS35L/assign5/coreutils-with-bug/bin/ls
+
+   First, I will need to find relevant functions within ls.c that performs
+   sorting by data.
+   (gdb) info function
+   'compare_mtime' looks relevent. To further inspect, I will set a breakpoint
+   there and run the program
+   (gdb) break compare_mtime
+   (gdb) run -lt
+
+   Breakpoint 1, compare_mtime (a=0x618190, b=0x618240) at ls.c:2884
+   2884	      static int compare_mtime (V a, V b) {
+   return cmp_mtime (a, b, xstrcoll); }
+
+   To further inspect, I will step into the next instruction
+   (gdb) s
+   (gdb) s
+
+   timespec_cmp (b=..., a=...) at ../lib/timespec.h:48
+   48	  int diff = a.tv_sec - b.tv_sec;
+
+   (gdb) list
+
+   And here is the function that compares the timespecs
+   As we can see, the function is located in ../lib/timespec.h
+   Knowing this, we can make a copy of this and change it
+
+   (gdb) quit
+   $ cd ~/CS35L/assign5
+   $ cp ~/CS35L/assign5/coreutils-with-bug/lib/timespec.h .
+   $ emacs timespec.h
+
+   Taking a look at this code, we see that the comparison is done through
+   subtracting b from a. The sign of the difference is then used to determine
+   which file is younger/older.
+  
+   With the hint from class, the bug must be caused in integer overflow in the
+   arithemic. Thus, we can solve the overflow problem with comparison operators
+   Now the code is:
+   
+   static inline int
+   timespec_cmp (struct timespec a, struct timespec b)
+   {
+	if (a.tv_sec < b.tv_sec)
+    	   return -1;
+  	else if (a.tv_sec > b.tv_sec)
+    	   return 1;
+    	else
+	   return 0;
+   }
+
+   Now to make the patch, we use diff -u on the bugged timespec.h file against
+   ours
+   $ diff -u coreutils-with-bug/lib/timespec.h timespec.h >
+     coreutils-with-bug/lab5.diff
+
+   And to apply the patch:
+   $ patch -p1 < lab5.diff
+   $ make
+   $ make install
+
+   
+5) Now, I will test the cases in my home directory with the already-installed
+   ls and touch
+
+   $ cd ~/CS35L
+   $ touch -d '1918-11-11 11:00 GMT' wwi-armistice-cs35L
+   $ touch now
+   $ sleep 1
+   $ touch now1
+   $ TZ=UTC0 ls -lt --full-time wwi-armistice-cs35L now now1
+
+   -rw-r--r-- 1 shijie csugrad 0 2054-12-17 17:28:16.000000000 +0000
+      wwi-armistice-cs35L
+   -rw-r--r-- 1 shijie csugrad 0 2020-05-07 05:40:01.452344000 +0000 now1
+   -rw-r--r-- 1 shijie csugrad 0 2020-05-07 05:39:53.984056000 +0000 now
+
+   It appears that SEASnet handled the time sorting correctly, but the only
+   problem is that the armistice file is now dated in the future (year 2054)
+   I believe this problem is similar to the buggy timespec.h: there must be
+   integer overflow. After further researching, there is in fact unsigned int
+   overflow, (where year 1970 is consider 0) making 1918 a negative year and
+   thus overflowing to a future year.

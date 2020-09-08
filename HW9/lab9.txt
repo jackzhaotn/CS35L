@@ -1,0 +1,99 @@
+Laboratory 9: Git spelunking
+
+1. To investigate disk space of this directory, I cd into it first
+   $ cd ~eggert/src/gnu/emacs-CS-35L
+   Working files = everything but .git folder. To find out the disk space, we
+   will need to find the disk space of the .git directory and everything else.
+   $ du -sh
+   577M
+   $ cd .git
+   $ du -sh
+   415M
+   Thus, diskspace of working files = 577-415 = 162 MB
+   Diskspace of .git = 415 MB
+
+   To find out what files consume the most space
+   $ du -h | sort
+   By inspection, ./objects/pack is the largest at 406 MB
+   This is the largest file because it contains all the objects from all the
+   commits
+
+2. To find how many branches are local and remote, we differentiate with -r
+   flag:
+   $ git branch | wc -l
+   $ git branch -r | wc -l
+
+   Local branches: 176
+   Remote branches: 177
+
+3. To investigate number of remote repositories:
+   $ git remote -v
+
+   There is only one remote repository located in savannah:
+   https://git.savannah.gnu.org/git/emacs.git (fetch)
+   https://git.savannah.gnu.org/git/emacs.git (push)
+
+4. To find ten local brances most recently committed to:
+   $ git for-each-ref --sort=-committerdate
+   By inspection, we will find the most recent refs/heads/
+      master
+      scratch/joaot/make-completion-at-point-function
+      feature/windows-with-utils
+      scratch/completion-api
+      scratch/a-modest-completion-redesign-proposal
+      scratch/fido-mode
+      feature/gnus-select2
+      feature/extend_face_id
+      scratch/jit-lock-antiblink-cleaned-up
+      emacs-26
+
+5. TO find out how many commits are in master:
+   $ git rev-list --count master
+   141268 commits
+
+6. To find the percent, we need to find commits in all branches
+   $ git rev-list --count --all
+   145595 commits
+   141268/145595 = 97%
+
+7. TO find out the 'leaderboard' for most master-branch commits:
+   $ git shortlog -s -n --since=2013 master
+    3700  Eli Zaretskii
+  3603  Paul Eggert
+  3343  Glenn Morris
+  1833  Lars Ingebrigtsen
+  1713  Stefan Monnier
+  1580  Michael Albinus
+   647  Dmitry Gutov
+   604  Noam Postavsky
+   530  Juri Linkov
+   487  Alan Mackenzie
+
+8. Need to relog to enable portforwarding with -X flag
+   $ exit
+   $ ssh -X shijie@lnxsrv09.sesa.ucla.edu
+   $ cd ~eggert/src/gnu/emacs-CS-35L
+   $ gitk
+   Now, I investigate the relationships between the 10 commits
+
+   	1: 4ea37c2b8b0c5a68fde59770c3536195e0972217
+	2: 977cd6cb28a37744966ec62f70cf62659f6f302a
+	3: 625cee531623feddbe3174fad52c7db96ec60bb3
+	4: 5490ccc5ebf39759dfd084bbd31f464701a3e775
+	5: 0c06b93c1e467debd401eb0b3be4652fde14fa95
+	6: 820739bbb572b30b6ce45756c9960e48dca859af
+	7: 00e4e3e9d273a193620c3a4bb4914e555cb8e343
+	8: 49cd561dc62ea6b3fbedab7aef0f020733f4cf09
+	9: abcb2e62dae6aa26308f7ac9efc89247f89cbe65
+	10: 98ac36efe4ce4bd3a0bca76fc73ce6c7abaa4371
+
+	The following diagram corresponds with numbers given to the 10 commits
+	
+	   2 -> ... - - > 5 -------------> 9 -> 10 ->
+	  /  	       	  /               /     /
+	1		... -> 6 ->      /     /
+	  \		/      \	 /     /
+	   3 -> ... -> 4 ->      7 ->	 /     /
+	     	       	 	  \	 /     /	
+				  ... -> 8 -> ... ->
+				  

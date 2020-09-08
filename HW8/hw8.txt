@@ -1,0 +1,77 @@
+Homework 8: verifying and publishing a backported change
+
+1. $ emacs hw8.txt
+
+2. Checkout 3.0 of diffutils into a new branch, "quote"
+   $ cd diffutils
+   $ git checkout -b quote v3.0
+   Output: M	src/cmp.c
+   	   M	src/diff.c
+	   M	src/diff3.c
+	   M	src/dir.c
+	   M	src/sdiff.c
+	   M	src/util.c
+	   Switched to a new branch 'quote'
+
+3. Now I will apply my patch to this branch
+   $ patch -p1 < quote-3.0-patch.txt
+   patching file src/cmp.c
+   patching file src/diff.c
+   patching file src/diff3.c
+   patching file src/dir.c
+   patching file src/sdiff.c
+   patching file src/util.c
+
+4. Learn how to use add-change-log-entry-other-window (C-x 4 a)
+
+5. Add a ChangeLog entry for my patch for the 6 files
+   $ emacs FILE
+   C-x 4 a
+   Paste: maint: quote 'like this' or "like this", not `like this'
+
+6. Commit the changes with the ChangeLog entry as the commit message
+   $ git commit -aF ChangeLog
+   Successfully committed with my name and email address
+    6 files changed, 43 insertions(+), 43 deletions(-)
+    
+7. Generate formatted-patch.txt
+   $ git format-patch -1 --stdout > ../formatted-patch.txt
+
+8. Verify that the patch works by cloning a new repository
+   $ cd ..
+   $ git clone ~eggert/src/gnu/diffutils diffutils2
+   $ cd diffutils2
+   $ git checkout -b patchery v3.0
+   $ git am < ../formatted-patch.txt
+   Output: Applying: 2020-05-30 Shijie Zhao <shijie@lnxsrv09.seas.ucla.edu>
+
+   Now we will build and check with make check
+   $ ./bootstrap
+   $ ./configure
+   $ make
+   $ make check
+
+9. Very that the ChangeLog works
+   $ make distdir
+   $ ls
+   ChangeLog folder will be in diffutils-3.0.1-5f14
+   $ cd diffutils-3.0.1-5f14
+   $ emacs ChangeLog
+   Verified
+
+10. Investigate emacs, first need to enable port forwarding
+    $ exit
+    $ ssh -X shijie@lnxsrv07.seas.ucla.edu
+    $ git clone ~eggert/src/gnu/emacs
+    cd emacs
+    gitk
+    Newest merge upto 2015-01-25:
+    2015-01-25 12:19:27 Merge branch 'master' into xwidget
+
+    My view of the mergepoint looks like a window in the top third of the
+    screen, containing commits, its author, and the date and time of the commit
+
+    The other subwindows feature a search bar right below the main mergepoint,
+    which can help narrow what someone might be looking for; the bottom left
+    subwindow contains the ChangeLog; and to the right we have a subwindow
+    that can be toggled to look at the patch comments or the tree. 
