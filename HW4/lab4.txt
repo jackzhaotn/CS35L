@@ -1,0 +1,69 @@
+Laboratory 4: Installing a small change to a big package
+
+1) I need to download some relevant files, namely the source code, signtaure,
+and GNU keyring.
+   $ wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz
+   $ wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz.sig
+   $ wget https://ftp.gnu.org/gnu/gnu-keyring.gpg
+
+   Now I need to unzip the tarball file and verify its signature
+
+   $ tar -xJvf coreutils-8.29.tar.xz
+
+   $ gpg --verify --keyring ./gnu-keyring.gpg coreutils-8.29.tar.xz.sig
+
+   Outputs:
+	gpg: Signature made Wed 27 Dec 2017 10:29:05 AM PST using RSA key ID
+	306037D9
+	gpg: Good signature from "Pádraig Brady <P@draigBrady.com>"
+	gpg:                 aka "Pádraig Brady <pbrady@redhat.com>"
+	gpg:                 aka "Pádraig Brady <pixelbeat@gnu.org>"
+	gpg: WARNING: This key is not certified with a trusted signature!
+	gpg:          There is no indication that the signature belongs
+	to the owner.
+	Primary key fingerprint: 6C37 DC12 121A 5006 BC1D  B804 DF6F
+	D971 3060 37D9
+
+   There is a warning because the key is public and thus not verfied by me
+
+2) First, I read about the installation readme
+   $ cd coreutils-8.29
+   $ cat INSTALL
+
+   Now, I know to install with ./configure --prefix, and I want it to install
+   in a temp dir, lab4install:
+   $ mkdir lab4install
+   $ ./configure --prefix=/u/cs/ugrad/shijie/CS35L/lab4install/coreutils-8.29
+   After ./configure is finished, I will now use make and make install to
+   compile
+   $ make
+   $ make install
+
+   $ cd bin
+   $ ls
+   All the executables are in the directory so everything looks good, and there
+   were no problems
+
+3) Now I want to test and reproduce the bug.
+   $ ./ls -aA
+   We can see that the bug is reproduced in that '.' and '..' still shows
+
+4) cd ~/CS35L/lab4install/coreutils-8.29
+   Now I want to create the patch file.
+   $ emacs ls.patch
+   Copy/paste the patch from message#10 into ls.patch
+
+   $ patch -p1 < ls.patch
+   This command will upload the patch
+
+   $ make
+   But this warning pops up: 'automake-1.15' is missing
+   So after looking up the problem, I have use this command:
+   $ autoreconf -f -i
+   $ make
+   $ make install
+
+   $ cd bin
+   $ ./ls -aA
+   The patch successfully fixed the bug. The hidden files do not appear anymore
+

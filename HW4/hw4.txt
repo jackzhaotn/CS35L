@@ -1,0 +1,24 @@
+Jack Zhao
+405-377-811
+
+Homework 4 Questions:
+
+Q1. From a time complexity standpoint, the performance of ls should become
+better since the patch removes a condition statement in the switch code.
+With less instructions, the program should execute faster.
+                                                                              
+Q2. While this patch solved the -aA problem, now the flag order of -aA or -Aa
+is important. So the intent of using the two orders of the flags has to be
+watched out for. This new version could also have compatibility issues. Not to
+mention, if the developer releases a patch in the future that overlaps with our
+patch, more issues could arise.
+
+Q3. IndexError is invoked since a random line is to be selected when there is
+none; so there is an out of bounds error for trying to access a line thats not
+in the scope.
+
+Q4. SyntaxError: invalid syntax is called because Python 3 no longer supports
+IOError
+
+Q5. My script runs the same on python2 as it does on python3. I guess all my
+code, including argparse, is compatible on python2. 
