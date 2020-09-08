@@ -1,0 +1,23 @@
+Jack Zhao
+405-377-811
+CS35L
+
+Assignment 2: Homework
+
+Command logs for key and signature generation:
+gpg2 --gen-key
+     1 Enter 2048 Enter 0 Enter y Enter jackzhao Enter thejackzhao@ucla.edu Enter cs35l Enter o Enter
+
+gpg2 --armor --export thejackzhao@ucla.edu >> ~/CS35L/hw-pubkey.asc
+cd CS35L
+gpg2 --output hw-pubkey.sig --detach-sig hw-pubkey.asc
+
+1. If other teams were able to observe data across the network, that would not be sufficient because the data is still encrypted and requires the private key to decrypt it.
+
+1.1 However, if they had tapped my keyboard, they would be able to obtain my passphrase. With that, they can simply ssh using the passphrase and have access to the private key.
+
+1.2 If they had physical control of the USB, they would also be able to have direct to the .ssh file and obtain the private key.
+
+2. --verify is a command that only checks to see if the signature matches the public key. In other words, there is no cross-check of the origin of the signature and key in relation to data. Thus, it can't verify if someone were to intercept the signature/key and pass along their own signature/key for verification. A solution to this would be for the author of the data to also publish his/her own public key so that the clients can cross-match verifcation and origin of the signature/key.
+
+

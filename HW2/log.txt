@@ -1,0 +1,78 @@
+Jack Zhao
+405-377-811
+CS35L Lab 2
+
+Assignment 2: SSH setup and use in applications
+
+Laboratory
+
+1) SSH into lnxsrv09 as "client" and verify .ssh folder
+   ls -a
+   .ssh is present already so
+   cd .ssh
+
+2) Generate SSH keys:
+   ssh-keygen
+   File to save the key in: 35Lweek2
+   Entered in a passphrase because thats good security
+   Key's fingerpring is shown
+   Key's randomart image is generated too
+   ls -l
+   Public key is saved under 35Lweek2.pub (-rw-r--r--)
+   Private key is saved under 35week2 (-rw------)
+
+3) Update the ~/.ssh/authorized_keys file on lnxsrv07
+   Login to lnxsrv07 and access ssh file:
+   cd .ssh
+   Create authorized keys file:
+   touch authorized_keys
+   Update permissions on that file:
+   chmod 600 authorized_keys
+   Append the contents of public key to authorized_keys file:
+   cat 35Lweek2.pub >> authorized_keys
+
+4) Confirm login with SSH key
+   Go back to lnxsrv09 and confirm:
+   ssh -i 35Lweek2 shijie@lnxsrv07.seas.ucla.net
+   Prompt appears with password input
+   After typing in password, SSH key is confirmed to work
+
+5) Make use of ssh-agent
+   exit lnxsrv07
+   cd .ssh
+   eval `ssh-agent`
+   (Agent pid 40065)
+   Add key to ssh-agent:
+   ssh-add 35Lweek2
+   Enter in password:
+   (Identity added: 35Lweek2 (35Lweek2))
+   ssh -i 35Lweek2 shijie@lnxsrv07.seas.ucla.net
+   Confirmed sucessful login without passphase prompt
+ 
+6) Port-Forwarding with X-Window
+   Installed XQuartz for Mac
+   Enable port forwarding with -X flag:
+   ssh -X shijie@lnxsrv09.seas.ucla.edu
+   xeyes
+   GUI of eyes following my cursor appear, meaning port-forwarding is sucessfully setup.
+
+7) Multi-hop from local machine to lnxsrv09 to lnxsrv07 directly
+   Will use the "Quick and Dirty" method
+   First, need to generate keys on local machine in .ssh directory
+   cd .ssh
+   ssh-key
+   Enter file in which to save the key: id_rsa
+   Enter in passphrase: ******
+   Now that the public and private keys are generated, I need to copy them to the authorized_keys file on the server:
+   ssh-copy-id shijie@lnxsrv09.seas.ucla.edu
+   Enter in passphrase: ******
+   Now, use ssh-agent:
+   eval `ssh-agent`
+   ssh-add id_rsa
+   Enter in passphrase: ******
+   Now, we test the "Quick and Dirty" method with 1 line of command:
+   ssh -A -t shijie@Lnxsrv09.seas.ucla.edu ssh -A -t shijie@lnxsrv07.ucla.edu
+   Successfully logged into lnxsrv07 with no password prompts
+   
+   
+ 

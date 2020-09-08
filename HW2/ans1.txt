@@ -1,0 +1,117 @@
+Jack Zhao
+405-377-811
+
+Lab 1: Linus and Emacs scavenger hunt
+
+1. I learned from, man man, that the shell command, man -k <printf>, searches for short descriptions and manual page names for the keyword printf as regular expression.
+
+2. Using shell command: which mv, I found mv to be located at /usr/local/cs/bin/mv
+   Using shell command: which sh, I found sh to be located at /usr/bin/sh
+
+3. I used, man find, to learn more about the find command.
+   Using the shell command, find /usr/bin -name "?r" -executable, it listed the following (and their function description as given by: man <program>):
+   	/usr/bin/tr (tr: translate or delete characters)
+	/usr/bin/ar (ar :create, modify, and extract from archives)
+	/usr/bin/pr (pr: convert text files for printing)
+
+4. I used man -k link and found the command readline /usr/bin/emacs
+   The output shows that /etc/alternatives/emacs is actually executed
+
+5. Shell command, /usr/bin/gcc -v, shows that the version is 4.85
+   whereas, gcc -v, shows that plain gcc version is 9.3.0.
+   Under further investigation of plain gcc, which gcc, shows that the two gcc programs are in different directories meaning that they are different programs.
+
+6. u+sx adds user permissions to set SUID of SGID attribute and to execute a file
+   o-w removes other user group permissions of writing to a file.
+
+7. I went through man find to learn about the different arguments and flags that limit the search. I used  find/usr/local/cs -type d -mtime -28
+   Because there are so many directories found, only some are list below:
+   	   /usr/local/cs
+	   /usr/local/cs/src/git
+	   /usr/local/cs/src/git/RCS
+	   /usr/local/cs/src/coreutils
+	   /usr/local/cs/src/coreutils/RCS
+	   /usr/local/cs/src/gcc
+	   /usr/local/cs/src/gcc/RCS
+	   /usr/local/cs/src/gdb
+	   /usr/local/cs/src/gdb/RCS
+	   /usr/local/cs/src/go
+	   /usr/local/cs/src/go/RCS
+	   /usr/local/cs/src/ocaml
+	   /usr/local/cs/src/ocaml/RCS
+	   /usr/local/cs/src/tar
+	   /usr/local/cs/src/tar/RCS
+	   /usr/local/cs/include/c++
+	   /usr/local/cs/lib64
+	   /usr/local/cs/share
+	   /usr/local/cs/share/info
+	   /usr/local/cs/share/man/man1
+	   /usr/local/cs/share/man/man7
+	   /usr/local/cs/share/man/man5
+	   /usr/local/cs/share/man/man3
+	   /usr/local/cs/bin
+	   /usr/local/cs/bin/.del
+	   /usr/local/cs/lib
+	   /usr/local/cs/lib/gcc/x86_64-pc-linux-gnu
+	   /usr/local/cs/libexec/gcc/x86_64-pc-linux-gnu
+	   /usr/local/cs/gdb-9.1
+	   /usr/local/cs/gdb-9.1/include
+	   /usr/local/cs/gdb-9.1/include/gdb
+	   /usr/local/cs/gdb-9.1/lib
+	   /usr/local/cs/gdb-9.1/share
+	   /usr/local/cs/gdb-9.1/share/info
+	   /usr/local/cs/gdb-9.1/share/gdb
+	   /usr/local/cs/gdb-9.1/share/gdb/python
+	   /usr/local/cs/gdb-9.1/share/gdb/python/gdb
+	   /usr/local/cs/gdb-9.1/share/gdb/python/gdb/command
+	   /usr/local/cs/gdb-9.1/share/gdb/python/gdb/function
+	   /usr/local/cs/gdb-9.1/share/gdb/python/gdb/printer
+	   /usr/local/cs/gdb-9.1/share/gdb/syscalls
+	   /usr/local/cs/gdb-9.1/share/gdb/system-gdbinit
+	   /usr/local/cs/gdb-9.1/share/man
+	   /usr/local/cs/gdb-9.1/share/man/man5
+	   /usr/local/cs/gdb-9.1/share/man/man1
+	   /usr/local/cs/gdb-9.1/bin
+	   /usr/local/cs/.del
+	   
+8. I searched for the path of find using which find, outputing the file location: /usr/bin/find
+   Shell command, find /usr/bin -type l | wc -l, outputs 292 lines meaning there are 292 files that are symbolic links
+   Shell command, find /usr/bin -type l, outputs the files. The first 5 are:
+   	 /usr/bin
+	 /usr/bin/scanimage
+	 /usr/bin/grub2-mkfont
+	 /usr/bin/ppmeharge
+	 /usr/bin/numastat
+
+9. man ls to learn about the flags to limit my search
+   Shell command, ls -a -t -l /usr/lib64, lists all files in the dir sorted by last modified date. The last file (the oldest file) is librom1394.so.0.3.0
+
+10. man locale to read about the program
+    locale gets its data from its settings from its definition files such as:
+    	   LC_CTYPE
+	   LC_NUMERIC
+	   LC_TIME
+	   LC_COLLATE
+	   LC_MONETARY
+
+11. C-h a downcase RET:
+    	downcase-dwin (M-x ... RET)
+	downcase-region (C-x C-l)
+	downcase-word  (M-l)
+
+12. C-h k:
+    	C-M-r: isearch-backward-regexp (incremental serach backwards for regular expression)
+	C-M-s: isearch-forward-regexp (increment search forwards for regular expression)
+	C-M-t:  transpose-sexps (like transposing  characters but with sexps)
+ 	C-M-u: backward-up-list  (move backward out of one level of parenthesis)
+	C-M-v: scroll-other-window (scroll next window upward ARG lines; or near full screen if no ARG)
+
+13. C-h k C-g
+    C-g is keyboard quit which signals a 'quit' condition. During assertion of Lisp code, this character causes a quit directly. At top-level, as an editor command, this simply beeps.
+
+14. C-h f yank RET
+    yank is bound to C-y and its function is to reinsert "paste" the last stretch of killed text (from kill ring)
+
+15. C-h f dired RET : dired is bound to C-x d
+    emacs C-x d /usr/bin prints 2840 files whereas ls -l /usr/bin |  wc -l only shows that ls -l /usr/bin prints 2438 files.
+    After remembering that -a flag has to be included in ls command to show . files, I noticed that "." and ".." are the missing two files from the ls -l command method of listing the directions. Thus, the main different of these two methods is that emacs dired commands lists . files by default.
